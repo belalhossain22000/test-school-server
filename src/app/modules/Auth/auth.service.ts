@@ -42,6 +42,7 @@ const loginUser = async (payload: { email: string; password: string }) => {
     {
       id: userData.id,
       email: userData.email,
+      name: userData.name,
       role: userData.role,
     },
     config.jwt.jwt_secret as Secret,
@@ -91,11 +92,18 @@ const changePassword = async (
 };
 
 const forgotPassword = async (payload: { email: string }) => {
-  const userData = await prisma.user.findUniqueOrThrow({
+  const userData = await prisma.user.findUnique({
     where: {
       email: payload.email,
     },
   });
+
+  if (!userData?.email) {
+    throw new ApiError(
+      httpStatus.NOT_FOUND,
+      "User not found! with this email " + payload.email
+    );
+  }
 
   const resetPassToken = jwtHelpers.generateToken(
     { email: userData.email, role: userData.role, id: userData.id },

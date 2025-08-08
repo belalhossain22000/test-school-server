@@ -28,7 +28,7 @@ model User {
   email           String     @unique
   isEmailVerified Boolean    @default(false)
   password        String
-  role            UserRole   @default(STUDENT)
+  role            UserRole   @default(student)
   status          UserStatus @default(ACTIVE)
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
@@ -37,10 +37,10 @@ model User {
 }
 
 enum UserRole {
-  ADMIN
-  SUPER_ADMIN
-  STUDENT
-  SUPERVISOR
+  admin
+  super_admin
+  student
+  supervisor
 }
 
 enum UserStatus {
