@@ -6,6 +6,7 @@ import { OtpRoutes } from "../modules/Otp/Otp.routes";
 import { competencyRoutes } from "../modules/Competency/Competency.route";
 import { questionRoutes } from "../modules/Question/Question.route";
 import { systemconfigRoutes } from "../modules/SystemConfig/SystemConfig.route";
+import { testattemptRoutes } from "../modules/TestAttempt/TestAttempt.route";
 
 
 const router = express.Router();
@@ -38,6 +39,10 @@ const moduleRoutes = [
   {
     path: "/systemconfig",
     route: systemconfigRoutes,
+  },
+  {
+    path: "/testattempt",
+    route: testattemptRoutes,
   },
 
 ];
