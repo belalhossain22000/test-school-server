@@ -23,15 +23,17 @@ model Otp {
 }
 
 model User {
-  id              String     @id @default(uuid())
+  id              String        @id @default(uuid())
   name            String
-  email           String     @unique
-  isEmailVerified Boolean    @default(false)
+  email           String        @unique
+  isEmailVerified Boolean       @default(false)
   password        String
-  role            UserRole   @default(student)
-  status          UserStatus @default(ACTIVE)
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
+  role            UserRole      @default(student)
+  status          UserStatus    @default(ACTIVE)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  TestAttempt     TestAttempt[]
+  Certificate     Certificate[]
 
   @@map("Users")
 }
@@ -47,4 +49,129 @@ enum UserStatus {
   ACTIVE
   INACTIVE
   BLOCKED
+}
+
+model Competency {
+  id          String @id @default(uuid())
+  name        String @unique
+  description String
+  order       Int
+
+  // Relations
+  questions Question[]
+
+  @@map("competencies")
+}
+
+enum SkillLevel {
+  A1
+  A2
+  B1
+  B2
+  C1
+  C2
+}
+
+enum TestStep {
+  STEP_1
+  STEP_2
+  STEP_3
+}
+
+// Question pool (132 total: 22 competencies × 6 levels)
+model Question {
+  id            String     @id @default(uuid())
+  competencyId  String
+  level         SkillLevel
+  questionText  String
+  options       Json // Array of answer options
+  correctAnswer String
+  explanation   String?
+  timeLimit     Int        @default(60)
+  isActive      Boolean    @default(true)
+  createdAt     DateTime   @default(now())
+
+  // Relations
+  competency Competency @relation(fields: [competencyId], references: [id], onDelete: Cascade)
+  answers    Answer[]
+
+  @@map("questions")
+}
+
+// Test attempts
+model TestAttempt {
+  id            String      @id @default(uuid())
+  userId        String
+  step          TestStep
+  startedAt     DateTime    @default(now())
+  completedAt   DateTime?
+  timeLimit     Int // Total time in seconds
+  score         Float? // Percentage score
+  status        TestStatus  @default(IN_PROGRESS)
+  levelAchieved SkillLevel? // Highest level achieved in this attempt
+
+  // Relations
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  answers      Answer[]
+  certificates Certificate[]
+
+  @@map("test_attempts")
+}
+
+enum TestStatus {
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  EXPIRED // Auto-submitted due to time limit
+}
+
+// Individual question answers
+model Answer {
+  id            String   @id @default(uuid())
+  testAttemptId String
+  questionId    String
+  userAnswer    String? // User's selected answer
+  isCorrect     Boolean?
+  timeSpent     Int? // Seconds spent on this question
+  answeredAt    DateTime @default(now())
+
+  // Relations
+  testAttempt TestAttempt @relation(fields: [testAttemptId], references: [id], onDelete: Cascade)
+  question    Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([testAttemptId, questionId])
+  @@map("answers")
+}
+
+// Digital certificates
+model Certificate {
+  id             String     @id @default(uuid())
+  userId         String
+  testAttemptId  String
+  level          SkillLevel // A1, A2, B1, B2, C1, or C2
+  score          Float // Final score percentage
+  issuedAt       DateTime   @default(now())
+  certificateUrl String? // PDF download URL
+  isActive       Boolean    @default(true) // Latest certificate is active
+
+  // Relations
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  testAttempt TestAttempt @relation(fields: [testAttemptId], references: [id], onDelete: Cascade)
+
+  @@map("certificates")
+}
+
+// System configuration
+model SystemConfig {
+  id                     String  @id @default(uuid())
+  defaultTimePerQuestion Int     @default(60) // Seconds
+  step1TimeLimit         Int     @default(2640) // 44 questions × 60 seconds
+  step2TimeLimit         Int     @default(2640)
+  step3TimeLimit         Int     @default(2640)
+  allowRetakeAfterFail   Boolean @default(false) // Step 1 retake policy
+  passingScoreStep1      Float   @default(25.0)
+  passingScoreStep2      Float   @default(25.0)
+  passingScoreStep3      Float   @default(25.0)
+
+  @@map("system_config")
 }
