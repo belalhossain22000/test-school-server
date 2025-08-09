@@ -42,41 +42,71 @@ const getCertificationDistribution = async () => {
 
 // Get competency performance analytics
 const getCompetencyPerformance = async () => {
-  const performance = await prisma.answer.groupBy({
-    by: ["questionId"],
-    _avg: { isCorrect: true },
-    _count: { questionId: true },
-    having: {
-      questionId: {
-        _count: {
-          gte: 10, // Only include questions answered at least 10 times
-        },
-      },
-    },
-  });
-
-  // Get question details
-  const questionIds = performance.map((p) => p.questionId);
-  const questions = await prisma.question.findMany({
-    where: { id: { in: questionIds } },
-    include: {
-      competency: {
-        select: { name: true },
-      },
-    },
-  });
-
-  return performance.map((perf) => {
-    const question = questions.find((q) => q.id === perf.questionId);
-    return {
-      questionId: perf.questionId,
-      competencyName: question?.competency.name,
-      level: question?.level,
-      correctPercentage: (perf._avg.isCorrect || 0) * 100,
-      totalAttempts: perf._count.questionId,
-    };
-  });
-};
+    // First get questions with enough attempts
+    const questionsWithCounts = await prisma.answer.groupBy({
+      by: ['questionId'],
+      _count: { questionId: true },
+      having: {
+        questionId: {
+          _count: {
+            gte: 10 // Only include questions answered at least 10 times
+          }
+        }
+      }
+    });
+  
+    const questionIds = questionsWithCounts.map(q => q.questionId);
+  
+    if (questionIds.length === 0) {
+      return [];
+    }
+  
+    // Get detailed performance for each question
+    const performance = await Promise.all(
+      questionIds.map(async (questionId) => {
+        const [totalAnswers, correctAnswers] = await Promise.all([
+          prisma.answer.count({
+            where: { questionId }
+          }),
+          prisma.answer.count({
+            where: { 
+              questionId,
+              isCorrect: true 
+            }
+          })
+        ]);
+  
+        return {
+          questionId,
+          totalAttempts: totalAnswers,
+          correctAnswers,
+          correctPercentage: totalAnswers > 0 ? (correctAnswers / totalAnswers) * 100 : 0
+        };
+      })
+    );
+  
+    // Get question details
+    const questions = await prisma.question.findMany({
+      where: { id: { in: questionIds } },
+      include: {
+        competency: {
+          select: { name: true }
+        }
+      }
+    });
+  
+    return performance.map(perf => {
+      const question = questions.find(q => q.id === perf.questionId);
+      return {
+        questionId: perf.questionId,
+        competencyName: question?.competency.name,
+        level: question?.level,
+        correctPercentage: perf.correctPercentage,
+        totalAttempts: perf.totalAttempts,
+        correctAnswers: perf.correctAnswers
+      };
+    });
+  };
 
 // Get test attempt statistics by step
 const getTestStepStats = async () => {
