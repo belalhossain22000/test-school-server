@@ -8,7 +8,8 @@ import { questionRoutes } from "../modules/Question/Question.route";
 import { systemconfigRoutes } from "../modules/SystemConfig/SystemConfig.route";
 import { testattemptRoutes } from "../modules/TestAttempt/TestAttempt.route";
 import { CertificateRoutes } from "../modules/Certificate/Certificate.routes";
-
+import { analyticsRoutes } from "../modules/Analytics/Analytics.routes";
+import { AnswerRoutes } from "../modules/Answer/Answer.routes";
 
 const router = express.Router();
 
@@ -49,7 +50,14 @@ const moduleRoutes = [
     path: "/certificate",
     route: CertificateRoutes,
   },
-
+  {
+    path: "/analytics",
+    route: analyticsRoutes,
+  },
+  {
+    path: "/answer",
+    route: AnswerRoutes,
+  },
 ];
 
 moduleRoutes.forEach((route) => router.use(route.path, route.route));
