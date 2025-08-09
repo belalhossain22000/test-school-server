@@ -24,6 +24,18 @@ const getAllQuestions = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+//getQuestionsForStep
+const getQuestionsForStep = catchAsync(async (req: Request, res: Response) => {
+  const { step } = req.query;
+  const result = await questionService.getQuestionsForStep(step as any);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Question retrieved successfully",
+    data: result,
+  });
+});
+
 const getQuestionById = catchAsync(async (req: Request, res: Response) => {
   const result = await questionService.getQuestionById(req.params.id);
   sendResponse(res, {
@@ -83,6 +95,17 @@ const bulkCreateQuestions = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+//getQuestionForTest
+const getQuestionForTest = catchAsync(async (req: Request, res: Response) => {
+  const result = await questionService.getQuestionForTest(req.params.id);
+  sendResponse(res, {
+    statusCode: httpStatus.OK,
+    success: true,
+    message: "Question retrieved successfully",
+    data: result,
+  });
+});
+
 export const questionController = {
   createQuestion,
   getAllQuestions,
@@ -91,4 +114,6 @@ export const questionController = {
   deleteQuestion,
   getQuestionsByCompetencyAndLevel,
   bulkCreateQuestions,
+  getQuestionsForStep,
+  getQuestionForTest,
 };

@@ -3,6 +3,19 @@ import { questionController } from "./Question.controller";
 
 const router = Router();
 
+
+//getQuestionsForStep
+router.get(
+    "/getQuestionsForStep",
+    questionController.getQuestionsForStep
+);
+
+//getQuestionForTest
+router.get(
+    "/getQuestionForTest/:id",
+    questionController.getQuestionForTest
+);
+
 // create question
 router.post("/create", questionController.createQuestion);
 
@@ -14,6 +27,8 @@ router.get(
     "/getQuestionsByCompetencyAndLevel",
     questionController.getQuestionsByCompetencyAndLevel
 );
+
+
 
 // get all question
 router.get("/", questionController.getAllQuestions);

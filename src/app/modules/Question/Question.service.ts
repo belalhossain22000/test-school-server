@@ -25,6 +25,7 @@ const createQuestion = async (data: {
 
   const getQuestionsForStep = async (step: TestStep) => {
     let levels: SkillLevel[] = [];
+    console.log(step);
   
     switch (step) {
       case TestStep.STEP_1:
@@ -149,21 +150,22 @@ const createQuestion = async (data: {
   };
   
 
-  // Get question statistics
-// export const getQuestionStats = async (questionId: string) => {
+// //   Get question statistics
+// //   Get question statistics
+//  const getQuestionStats = async (questionId: string) => {
 //     const stats = await prisma.answer.aggregate({
 //       where: { questionId },
 //       _count: { questionId: true },
-//       _avg: { 
+//       _sum: { 
 //         isCorrect: true,
 //         timeSpent: true 
 //       }
 //     });
-  
+    
 //     return {
 //       totalAttempts: stats?._count?.questionId,
-//       correctPercentage: (stats._avg.isCorrect || 0) * 100,
-//       avgTimeSpent: stats._avg.timeSpent || 0
+//       correctPercentage: (stats._sum?.isCorrect || 0) / (stats._count?.questionId || 1) * 100,
+//       avgTimeSpent: (stats._sum?.timeSpent || 0) / (stats._count?.questionId || 1)
 //     };
 //   };
 
